@@ -1,6 +1,5 @@
 import React from 'react';
-import { ArrowRight, Calendar, CheckCircle2, ShieldCheck, Flame, ChevronDown } from 'lucide-react';
-import { HERO_HIGHLIGHTS } from '../data/gymData';
+import { ArrowRight, Calendar, ShieldCheck, Flame, ChevronDown } from 'lucide-react';
 
 interface HeroProps {
   onOpenTrialModal: (programTitle?: string) => void;
@@ -85,7 +84,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenTrialModal }) => {
           </p>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-14">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
             <button
               onClick={() => onOpenTrialModal()}
               id="hero-join-now-btn"
@@ -103,29 +102,6 @@ export const Hero: React.FC<HeroProps> = ({ onOpenTrialModal }) => {
               <Calendar className="w-5 h-5 text-[#FFD21F]" />
               <span>Book a Free Trial</span>
             </button>
-          </div>
-
-          {/* Four Small Highlights Required by Prompt */}
-          <div
-            id="hero-highlights-grid"
-            className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 pt-6 border-t border-[#222222]"
-          >
-            {HERO_HIGHLIGHTS.map((item) => (
-              <div
-                key={item.id}
-                className="bg-[#121212]/80 border border-[#242424] rounded-lg p-3 sm:p-3.5 flex flex-col justify-between hover:border-[#FFD21F]/40 transition-colors group"
-              >
-                <div className="flex items-center gap-2 mb-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-[#FFD21F] shrink-0 group-hover:scale-110 transition-transform" />
-                  <h4 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wide leading-tight">
-                    {item.label}
-                  </h4>
-                </div>
-                <p className="text-[11px] text-[#888888] leading-snug">
-                  {item.desc}
-                </p>
-              </div>
-            ))}
           </div>
         </div>
       </div>
