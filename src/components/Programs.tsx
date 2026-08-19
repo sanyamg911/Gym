@@ -1,157 +1,300 @@
-import React, { useState } from 'react';
-import { ArrowRight, Flame, Sparkles, Dumbbell, Zap, CheckCircle2 } from 'lucide-react';
-import { PROGRAMS } from '../data/gymData';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { ChevronLeft, ChevronRight, ArrowRight, Zap, Dumbbell } from 'lucide-react';
 import { ProgramItem } from '../types';
 
 interface ProgramsProps {
   onOpenTrialModal: (programTitle?: string) => void;
 }
 
+// Exactly the 8 requested services
+export const TARGET_PROGRAMS: ProgramItem[] = [
+  {
+    id: 'weight-training',
+    title: 'Weight Training',
+    category: 'strength',
+    description: 'Build raw muscular power, bone density, and sculpted physique with progressive overload and free weights.',
+    image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1200&auto=format&fit=crop',
+    intensity: 'High',
+    focus: 'Hypertrophy & Strength',
+  },
+  {
+    id: 'strength-conditioning',
+    title: 'Strength & Conditioning',
+    category: 'strength',
+    description: 'Athletic performance conditioning combining barbell work, plyometrics, and stamina drills for explosive power.',
+    image: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=1200&auto=format&fit=crop',
+    intensity: 'High Intensity',
+    focus: 'Agility & Endurance',
+  },
+  {
+    id: 'yoga',
+    title: 'Yoga',
+    category: 'mind_body',
+    description: 'Traditional asanas designed for core stability, deep joint mobility, conscious breathwork, and post-workout recovery.',
+    image: 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?q=80&w=1200&auto=format&fit=crop',
+    intensity: 'All Levels',
+    focus: 'Mobility & Peace',
+  },
+  {
+    id: 'zumba',
+    title: 'Zumba',
+    category: 'cardio',
+    description: 'High-energy Latin and global dance fitness routines that turn intense calorie burning into an exhilarating party.',
+    image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=1200&auto=format&fit=crop',
+    intensity: 'High Intensity',
+    focus: 'Cardio & Rhythm',
+  },
+  {
+    id: 'dance',
+    title: 'Dance',
+    category: 'cardio',
+    description: 'Choreographed workout sessions blending upbeat contemporary beats to improve rhythm, coordination, and tone.',
+    image: 'https://images.unsplash.com/photo-1524594152303-9fd13543fe6e?q=80&w=1200&auto=format&fit=crop',
+    intensity: 'Medium',
+    focus: 'Coordination & Cardio',
+  },
+  {
+    id: 'trx',
+    title: 'TRX',
+    category: 'specialized',
+    description: 'Total Resistance Exercise suspension training using bodyweight against gravity to forge rock-solid core stability.',
+    image: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=1200&auto=format&fit=crop',
+    intensity: 'High',
+    focus: 'Core & Suspension',
+  },
+  {
+    id: 'functional-training',
+    title: 'Functional Training',
+    category: 'specialized',
+    description: 'Multi-planar movement patterns with kettlebells, battle ropes, and sleds to prepare your body for real-life agility.',
+    image: 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?q=80&w=1200&auto=format&fit=crop',
+    intensity: 'High Intensity',
+    focus: 'Agility & Power',
+  },
+  {
+    id: 'power-yoga',
+    title: 'Power Yoga',
+    category: 'mind_body',
+    description: 'Dynamic, fast-paced vinyasa flow that burns calories, elevates heart rate, and builds profound mental focus.',
+    image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=1200&auto=format&fit=crop',
+    intensity: 'High',
+    focus: 'Cardio Flow & Core',
+  },
+];
+
 export const Programs: React.FC<ProgramsProps> = ({ onOpenTrialModal }) => {
-  const [selectedCategory, setSelectedCategory] = useState<'all' | 'strength' | 'cardio' | 'mind_body' | 'specialized'>('all');
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+  const [activeIndex, setActiveIndex] = useState(0);
 
-  const categories = [
-    { id: 'all', label: 'All 10 Programs' },
-    { id: 'strength', label: 'Strength & Power' },
-    { id: 'cardio', label: 'Cardio & Dance' },
-    { id: 'mind_body', label: 'Mind & Body' },
-    { id: 'specialized', label: 'Specialized Training' },
-  ];
+  const updateScrollState = useCallback(() => {
+    if (!scrollContainerRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+    setCanScrollLeft(scrollLeft > 15);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 15);
 
-  const filteredPrograms = selectedCategory === 'all'
-    ? PROGRAMS
-    : PROGRAMS.filter((p) => {
-        if (selectedCategory === 'cardio') return p.category === 'cardio';
-        if (selectedCategory === 'strength') return p.category === 'strength';
-        if (selectedCategory === 'mind_body') return p.category === 'mind_body';
-        if (selectedCategory === 'specialized') return p.category === 'specialized';
-        return true;
+    // Calculate approximate active card index for pagination dots
+    const totalItems = TARGET_PROGRAMS.length;
+    const maxScroll = scrollWidth - clientWidth;
+    if (maxScroll > 0) {
+      const scrollRatio = scrollLeft / maxScroll;
+      const index = Math.round(scrollRatio * (totalItems - 1));
+      setActiveIndex(Math.min(Math.max(0, index), totalItems - 1));
+    }
+  }, []);
+
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    updateScrollState();
+    el.addEventListener('scroll', updateScrollState, { passive: true });
+    window.addEventListener('resize', updateScrollState);
+    return () => {
+      el.removeEventListener('scroll', updateScrollState);
+      window.removeEventListener('resize', updateScrollState);
+    };
+  }, [updateScrollState]);
+
+  const handleScroll = (direction: 'prev' | 'next') => {
+    if (!scrollContainerRef.current) return;
+    const container = scrollContainerRef.current;
+    // Calculate card width dynamically (desktop ~ 1/4 of container, mobile ~ 85% width)
+    const cardEl = container.firstElementChild as HTMLElement | null;
+    const scrollAmount = cardEl ? cardEl.offsetWidth + 20 : container.clientWidth * 0.8;
+
+    if (direction === 'prev') {
+      if (container.scrollLeft <= 15) {
+        // Loop to end
+        container.scrollTo({ left: container.scrollWidth - container.clientWidth, behavior: 'smooth' });
+      } else {
+        container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+      }
+    } else {
+      if (container.scrollLeft >= container.scrollWidth - container.clientWidth - 15) {
+        // Loop to start
+        container.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      }
+    }
+  };
+
+  const scrollToIndex = (index: number) => {
+    if (!scrollContainerRef.current) return;
+    const container = scrollContainerRef.current;
+    const cards = container.children;
+    if (cards[index]) {
+      (cards[index] as HTMLElement).scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'start',
       });
+    }
+  };
 
   return (
-    <section id="programs" className="py-24 bg-[#080808] relative border-t border-[#1C1C1C]">
+    <section id="programs" className="py-20 bg-[#080808] relative border-t border-[#1C1C1C] overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Header Section */}
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-[#161616] border border-[#282828] mb-3">
-            <Zap className="w-3.5 h-3.5 text-[#FFD21F]" />
-            <span className="text-xs uppercase font-extrabold tracking-[0.25em] text-[#FFD21F]">
-              Dynamic Training Options
-            </span>
+        {/* Header with Navigation Controls */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-[#161616] border border-[#282828] mb-3">
+              <Zap className="w-3.5 h-3.5 text-[#FFD21F]" />
+              <span className="text-xs uppercase font-extrabold tracking-[0.25em] text-[#FFD21F]">
+                Our Services
+              </span>
+            </div>
+
+            <h2
+              id="programs-heading"
+              className="font-display text-4xl sm:text-5xl lg:text-6xl font-black text-white uppercase tracking-tight"
+            >
+              Fitness <span className="text-[#FFD21F]">Programs</span>
+            </h2>
+            <p className="text-[#A5A5A5] text-sm sm:text-base mt-2 max-w-xl">
+              Choose from 8 specialized training programs crafted to build strength, mobility, and lifelong discipline.
+            </p>
           </div>
 
-          <h2
-            id="programs-heading"
-            className="font-display text-4xl sm:text-5xl lg:text-6xl font-black text-white uppercase tracking-tight mb-4"
-          >
-            Find Your <span className="text-[#FFD21F]">Fit</span>
-          </h2>
-
-          <p className="text-[#A5A5A5] text-base sm:text-lg leading-relaxed">
-            Whether your goal is lifting heavier, developing explosive endurance, or finding peace and flexibility, Fitness Art has a program tailored for you.
-          </p>
-        </div>
-
-        {/* Category Filter Tabs */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-12" id="programs-filter-tabs">
-          {categories.map((cat) => (
+          {/* Desktop & Tablet Navigation Arrows */}
+          <div className="flex items-center gap-2.5 self-start md:self-auto">
             <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id as any)}
-              id={`filter-tab-${cat.id}`}
-              className={`px-5 py-2.5 rounded-lg font-bold text-xs uppercase tracking-wider transition-all duration-200 cursor-pointer ${
-                selectedCategory === cat.id
-                  ? 'bg-[#FFD21F] text-black shadow-lg shadow-[#FFD21F]/20'
-                  : 'bg-[#141414] text-[#A5A5A5] hover:text-white hover:bg-[#1C1C1C] border border-[#242424]'
-              }`}
+              onClick={() => handleScroll('prev')}
+              id="programs-prev-btn"
+              aria-label="Previous Programs"
+              className="w-11 h-11 rounded-xl bg-[#141414] hover:bg-[#1F1F1F] active:bg-[#FFD21F] text-white active:text-black border border-[#2A2A2A] hover:border-[#FFD21F]/50 flex items-center justify-center transition-all cursor-pointer shadow-lg group"
             >
-              {cat.label}
+              <ChevronLeft className="w-5 h-5 text-[#A5A5A5] group-hover:text-white group-active:text-black transition-colors" />
             </button>
-          ))}
+            <button
+              onClick={() => handleScroll('next')}
+              id="programs-next-btn"
+              aria-label="Next Programs"
+              className="w-11 h-11 rounded-xl bg-[#141414] hover:bg-[#1F1F1F] active:bg-[#FFD21F] text-white active:text-black border border-[#2A2A2A] hover:border-[#FFD21F]/50 flex items-center justify-center transition-all cursor-pointer shadow-lg group"
+            >
+              <ChevronRight className="w-5 h-5 text-[#A5A5A5] group-hover:text-white group-active:text-black transition-colors" />
+            </button>
+          </div>
         </div>
 
-        {/* Programs Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-          {filteredPrograms.map((program: ProgramItem) => (
+        {/* Horizontal Carousel Track */}
+        <div
+          ref={scrollContainerRef}
+          id="programs-carousel-track"
+          className="flex gap-4 sm:gap-5 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 pt-1 px-1 -mx-1 scrollbar-none"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {TARGET_PROGRAMS.map((program, index) => (
             <div
               key={program.id}
               id={`program-card-${program.id}`}
-              className="bg-[#121212] border border-[#222222] hover:border-[#FFD21F]/60 rounded-xl overflow-hidden flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 shadow-xl hover:shadow-2xl hover:shadow-black group"
+              className="flex-none w-[82%] sm:w-[calc(50%-12px)] lg:w-[calc(25%-15px)] snap-start bg-[#121212] border border-[#222222] hover:border-[#FFD21F]/70 rounded-xl overflow-hidden flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 shadow-lg hover:shadow-2xl hover:shadow-black group"
             >
-              {/* Card Image with Intensity Overlay */}
-              <div className="relative h-56 overflow-hidden">
+              {/* Card Image */}
+              <div className="relative h-44 sm:h-48 overflow-hidden bg-[#181818]">
                 <img
                   src={program.image}
                   alt={program.title}
-                  className="w-full h-full object-cover object-center group-hover:scale-108 transition-transform duration-700 filter brightness-90 contrast-110"
+                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 filter brightness-90 contrast-110"
                   loading="lazy"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-[#121212]/30 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-transparent to-transparent" />
 
                 {/* Badges */}
-                <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">
-                  <span className="px-2.5 py-1 rounded bg-[#080808]/90 border border-[#2D2D2D] text-[#FFD21F] font-extrabold text-[10px] uppercase tracking-wider backdrop-blur-sm">
+                <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none">
+                  <span className="px-2 py-0.5 rounded bg-[#080808]/90 border border-[#2D2D2D] text-[#FFD21F] font-extrabold text-[9px] uppercase tracking-wider backdrop-blur-sm">
                     {program.focus}
                   </span>
-                  <span className="px-2.5 py-1 rounded bg-[#FFD21F] text-black font-extrabold text-[10px] uppercase tracking-wider">
+                  <span className="px-2 py-0.5 rounded bg-[#FFD21F] text-black font-extrabold text-[9px] uppercase tracking-wider">
                     {program.intensity}
                   </span>
                 </div>
               </div>
 
-              {/* Card Body */}
-              <div className="p-6 flex-1 flex flex-col justify-between">
+              {/* Card Content */}
+              <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
                 <div>
-                  <h3 className="font-display text-2xl font-bold text-white uppercase tracking-wide group-hover:text-[#FFD21F] transition-colors mb-3 flex items-center justify-between">
-                    <span>{program.title}</span>
-                    <span className="w-2 h-2 rounded-full bg-[#FFD21F] opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <h3 className="font-display text-xl font-bold text-white uppercase tracking-wide group-hover:text-[#FFD21F] transition-colors mb-2 line-clamp-1">
+                    {program.title}
                   </h3>
 
-                  <p className="text-sm text-[#A5A5A5] leading-relaxed mb-6">
+                  <p className="text-xs text-[#A5A5A5] leading-relaxed line-clamp-2 sm:line-clamp-3 mb-4">
                     {program.description}
                   </p>
                 </div>
 
-                {/* Card Action */}
-                <div className="pt-4 border-t border-[#1F1F1F] flex items-center justify-between">
+                {/* Card Action Link */}
+                <div className="pt-3 border-t border-[#1F1F1F]">
                   <button
                     onClick={() => onOpenTrialModal(program.title)}
-                    className="text-xs uppercase font-extrabold tracking-wider text-[#FFD21F] group-hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer"
+                    id={`book-trial-${program.id}-btn`}
+                    className="w-full text-xs uppercase font-extrabold tracking-wider text-[#FFD21F] group-hover:text-white flex items-center justify-between transition-colors cursor-pointer"
                   >
-                    <span>Book Trial for {program.title}</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <span>Learn More / Book Trial</span>
+                    <ArrowRight className="w-3.5 h-3.5 stroke-[2.5] transform group-hover:translate-x-1 transition-transform" />
                   </button>
-                  <span className="text-[10px] uppercase tracking-widest text-[#666666]">
-                    Fitness Art
-                  </span>
                 </div>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Bottom Banner inside Programs */}
-        <div className="mt-14 p-6 sm:p-8 rounded-xl bg-gradient-to-r from-[#141414] via-[#181818] to-[#141414] border border-[#262626] flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-lg bg-[#FFD21F] text-black flex items-center justify-center font-bold shrink-0">
-              <Dumbbell className="w-6 h-6" />
-            </div>
-            <div>
-              <h4 className="text-lg font-bold text-white uppercase">
-                Not sure which program suits your body?
-              </h4>
-              <p className="text-sm text-[#A5A5A5]">
-                Consult our trainers for a customized training schedule.
-              </p>
-            </div>
+        {/* Carousel Footer with Mobile Arrows & Pagination Dots */}
+        <div className="mt-6 flex items-center justify-between sm:justify-center gap-4">
+          {/* Mobile Prev Button */}
+          <button
+            onClick={() => handleScroll('prev')}
+            className="sm:hidden p-2 rounded-lg bg-[#141414] border border-[#2A2A2A] text-white flex items-center justify-center active:bg-[#FFD21F] active:text-black"
+            aria-label="Previous card"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+
+          {/* Pagination Dots */}
+          <div className="flex items-center gap-1.5" id="programs-carousel-indicators">
+            {TARGET_PROGRAMS.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => scrollToIndex(i)}
+                aria-label={`Go to program ${i + 1}`}
+                className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                  activeIndex === i
+                    ? 'w-6 bg-[#FFD21F]'
+                    : 'w-1.5 bg-[#2A2A2A] hover:bg-[#555555]'
+                }`}
+              />
+            ))}
           </div>
 
+          {/* Mobile Next Button */}
           <button
-            onClick={() => onOpenTrialModal('General Fitness Assessment')}
-            className="px-6 py-3 rounded-lg bg-[#FFD21F] hover:bg-[#FFE047] text-black font-extrabold text-xs uppercase tracking-wider whitespace-nowrap transition-all shadow-md cursor-pointer"
+            onClick={() => handleScroll('next')}
+            className="sm:hidden p-2 rounded-lg bg-[#141414] border border-[#2A2A2A] text-white flex items-center justify-center active:bg-[#FFD21F] active:text-black"
+            aria-label="Next card"
           >
-            Get Free Consultation
+            <ChevronRight className="w-4 h-4" />
           </button>
         </div>
 

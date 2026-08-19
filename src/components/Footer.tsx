@@ -123,20 +123,20 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <a
-                  href="#trainers"
-                  onClick={(e) => handleNavClick(e, '#trainers')}
-                  className="hover:text-[#FFD21F] transition-colors"
-                >
-                  Trainers & Coaches
-                </a>
-              </li>
-              <li>
-                <a
                   href="#gallery"
                   onClick={(e) => handleNavClick(e, '#gallery')}
                   className="hover:text-[#FFD21F] transition-colors"
                 >
                   Gym Gallery
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#trainers"
+                  onClick={(e) => handleNavClick(e, '#trainers')}
+                  className="hover:text-[#FFD21F] transition-colors"
+                >
+                  Trainers & Coaches
                 </a>
               </li>
               <li>
@@ -150,11 +150,11 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <a
-                  href="#schedule"
-                  onClick={(e) => handleNavClick(e, '#schedule')}
+                  href="#testimonials"
+                  onClick={(e) => handleNavClick(e, '#testimonials')}
                   className="hover:text-[#FFD21F] transition-colors"
                 >
-                  Weekly Schedule
+                  Member Reviews
                 </a>
               </li>
               <li>

@@ -3,11 +3,9 @@ import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { About } from './components/About';
 import { Programs } from './components/Programs';
-import { WhyUs } from './components/WhyUs';
-import { Trainers } from './components/Trainers';
 import { Gallery } from './components/Gallery';
+import { Trainers } from './components/Trainers';
 import { Membership } from './components/Membership';
-import { Schedule } from './components/Schedule';
 import { Testimonials } from './components/Testimonials';
 import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
@@ -32,7 +30,7 @@ export default function App() {
       {/* Sticky Navigation Bar */}
       <Navbar onOpenTrialModal={handleOpenTrialModal} />
 
-      {/* Main Page Sections */}
+      {/* Main Page Sections: Hero -> About -> Programs -> Gallery -> Trainers -> Membership -> Reviews -> Contact -> Footer */}
       <main className="flex-1">
         {/* Hero Section */}
         <Hero onOpenTrialModal={handleOpenTrialModal} />
@@ -40,25 +38,19 @@ export default function App() {
         {/* About Section */}
         <About onOpenTrialModal={handleOpenTrialModal} />
 
-        {/* Programs Section */}
+        {/* Programs Carousel */}
         <Programs onOpenTrialModal={handleOpenTrialModal} />
 
-        {/* Why Fitness Art Section */}
-        <WhyUs />
+        {/* Gallery Carousel */}
+        <Gallery />
 
         {/* Trainers Section */}
         <Trainers onOpenTrialModal={handleOpenTrialModal} />
 
-        {/* Gallery Showcase */}
-        <Gallery />
-
         {/* Membership Plans */}
         <Membership onOpenTrialModal={handleOpenTrialModal} />
 
-        {/* Schedule */}
-        <Schedule onOpenTrialModal={handleOpenTrialModal} />
-
-        {/* Testimonials */}
+        {/* Reviews / Testimonials */}
         <Testimonials />
 
         {/* Contact & Lead Generation */}

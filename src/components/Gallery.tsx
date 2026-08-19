@@ -1,31 +1,75 @@
-import React, { useState } from 'react';
-import { Camera, Eye, X, ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { Camera, ChevronLeft, ChevronRight, Eye, X } from 'lucide-react';
 import { GALLERY_ITEMS } from '../data/gymData';
 import { GalleryItem } from '../types';
 
 export const Gallery: React.FC = () => {
-  const [selectedCategory, setSelectedCategory] = useState<'all' | 'strength' | 'cardio' | 'group' | 'yoga_dance' | 'interiors'>('all');
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
 
-  const categories = [
-    { id: 'all', label: 'All Photos' },
-    { id: 'strength', label: 'Strength & Free Weights' },
-    { id: 'cardio', label: 'Cardio Deck' },
-    { id: 'group', label: 'Group & Coaching' },
-    { id: 'yoga_dance', label: 'Yoga & Studios' },
-    { id: 'interiors', label: 'Gym Facility' },
-  ];
+  // Keep 8 photos
+  const galleryItems = GALLERY_ITEMS.slice(0, 8);
 
-  const filteredItems = selectedCategory === 'all'
-    ? GALLERY_ITEMS
-    : GALLERY_ITEMS.filter((item) => {
-        if (selectedCategory === 'strength') return item.category === 'strength';
-        if (selectedCategory === 'cardio') return item.category === 'cardio';
-        if (selectedCategory === 'group') return item.category === 'group';
-        if (selectedCategory === 'yoga_dance') return item.category === 'yoga_dance';
-        if (selectedCategory === 'interiors') return item.category === 'interiors';
-        return true;
+  const updateScrollState = useCallback(() => {
+    if (!scrollContainerRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+    const totalItems = galleryItems.length;
+    const maxScroll = scrollWidth - clientWidth;
+    if (maxScroll > 0) {
+      const scrollRatio = scrollLeft / maxScroll;
+      const index = Math.round(scrollRatio * (totalItems - 1));
+      setActiveIndex(Math.min(Math.max(0, index), totalItems - 1));
+    }
+  }, [galleryItems.length]);
+
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    updateScrollState();
+    el.addEventListener('scroll', updateScrollState, { passive: true });
+    window.addEventListener('resize', updateScrollState);
+    return () => {
+      el.removeEventListener('scroll', updateScrollState);
+      window.removeEventListener('resize', updateScrollState);
+    };
+  }, [updateScrollState]);
+
+  const handleScroll = (direction: 'prev' | 'next') => {
+    if (!scrollContainerRef.current) return;
+    const container = scrollContainerRef.current;
+    const cardEl = container.firstElementChild as HTMLElement | null;
+    const scrollAmount = cardEl ? cardEl.offsetWidth + 20 : container.clientWidth * 0.8;
+
+    if (direction === 'prev') {
+      if (container.scrollLeft <= 15) {
+        // Loop to end
+        container.scrollTo({ left: container.scrollWidth - container.clientWidth, behavior: 'smooth' });
+      } else {
+        container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+      }
+    } else {
+      if (container.scrollLeft >= container.scrollWidth - container.clientWidth - 15) {
+        // Loop to start
+        container.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      }
+    }
+  };
+
+  const scrollToIndex = (index: number) => {
+    if (!scrollContainerRef.current) return;
+    const container = scrollContainerRef.current;
+    const cards = container.children;
+    if (cards[index]) {
+      (cards[index] as HTMLElement).scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'start',
       });
+    }
+  };
 
   const openLightbox = (index: number) => {
     setActiveImageIndex(index);
@@ -35,98 +79,107 @@ export const Gallery: React.FC = () => {
     setActiveImageIndex(null);
   };
 
-  const nextImage = (e: React.MouseEvent) => {
+  const nextLightboxImage = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (activeImageIndex !== null) {
-      setActiveImageIndex((activeImageIndex + 1) % filteredItems.length);
+      setActiveImageIndex((activeImageIndex + 1) % galleryItems.length);
     }
   };
 
-  const prevImage = (e: React.MouseEvent) => {
+  const prevLightboxImage = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (activeImageIndex !== null) {
-      setActiveImageIndex((activeImageIndex - 1 + filteredItems.length) % filteredItems.length);
+      setActiveImageIndex((activeImageIndex - 1 + galleryItems.length) % galleryItems.length);
     }
   };
 
   return (
-    <section id="gallery" className="py-24 bg-[#0D0D0D] relative border-t border-[#1C1C1C]">
+    <section id="gallery" className="py-20 bg-[#0D0D0D] relative border-t border-[#1C1C1C] overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-[#161616] border border-[#282828] mb-3">
-            <Camera className="w-3.5 h-3.5 text-[#FFD21F]" />
-            <span className="text-xs uppercase font-extrabold tracking-[0.25em] text-[#FFD21F]">
-              Visual Showcase
-            </span>
+        {/* Header with Navigation Controls */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-[#161616] border border-[#282828] mb-3">
+              <Camera className="w-3.5 h-3.5 text-[#FFD21F]" />
+              <span className="text-xs uppercase font-extrabold tracking-[0.25em] text-[#FFD21F]">
+                Visual Showcase
+              </span>
+            </div>
+
+            <h2
+              id="gallery-heading"
+              className="font-display text-4xl sm:text-5xl lg:text-6xl font-black text-white uppercase tracking-tight"
+            >
+              Gym <span className="text-[#FFD21F]">Gallery</span>
+            </h2>
+
+            <p className="text-[#A5A5A5] text-sm sm:text-base mt-2 max-w-xl">
+              Explore our training floor, heavy lifting zones, high-energy dance studios, and wellness spaces.
+            </p>
           </div>
 
-          <h2
-            id="gallery-heading"
-            className="font-display text-4xl sm:text-5xl lg:text-6xl font-black text-white uppercase tracking-tight mb-4"
-          >
-            The Fitness Art <span className="text-[#FFD21F]">Space</span>
-          </h2>
-
-          <p className="text-[#A5A5A5] text-base sm:text-lg leading-relaxed">
-            Take a look inside our dynamic training zones, equipment floors, dedicated group studios, and recovery spaces.
-          </p>
-        </div>
-
-        {/* Filter Tabs */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-10" id="gallery-filter-tabs">
-          {categories.map((cat) => (
+          {/* Desktop & Tablet Navigation Arrows */}
+          <div className="flex items-center gap-2.5 self-start md:self-auto">
             <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id as any)}
-              className={`px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition-all duration-200 cursor-pointer ${
-                selectedCategory === cat.id
-                  ? 'bg-[#FFD21F] text-black shadow-md'
-                  : 'bg-[#141414] text-[#A5A5A5] hover:text-white border border-[#262626]'
-              }`}
+              onClick={() => handleScroll('prev')}
+              id="gallery-prev-btn"
+              aria-label="Previous Gallery Images"
+              className="w-11 h-11 rounded-xl bg-[#141414] hover:bg-[#1F1F1F] active:bg-[#FFD21F] text-white active:text-black border border-[#2A2A2A] hover:border-[#FFD21F]/50 flex items-center justify-center transition-all cursor-pointer shadow-lg group"
             >
-              {cat.label}
+              <ChevronLeft className="w-5 h-5 text-[#A5A5A5] group-hover:text-white group-active:text-black transition-colors" />
             </button>
-          ))}
+            <button
+              onClick={() => handleScroll('next')}
+              id="gallery-next-btn"
+              aria-label="Next Gallery Images"
+              className="w-11 h-11 rounded-xl bg-[#141414] hover:bg-[#1F1F1F] active:bg-[#FFD21F] text-white active:text-black border border-[#2A2A2A] hover:border-[#FFD21F]/50 flex items-center justify-center transition-all cursor-pointer shadow-lg group"
+            >
+              <ChevronRight className="w-5 h-5 text-[#A5A5A5] group-hover:text-white group-active:text-black transition-colors" />
+            </button>
+          </div>
         </div>
 
-        {/* Gallery Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {filteredItems.map((item: GalleryItem, index: number) => (
+        {/* Horizontal Carousel Track */}
+        <div
+          ref={scrollContainerRef}
+          id="gallery-carousel-track"
+          className="flex gap-4 sm:gap-5 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 pt-1 px-1 -mx-1 scrollbar-none"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {galleryItems.map((item: GalleryItem, index: number) => (
             <div
               key={item.id}
               onClick={() => openLightbox(index)}
-              className={`group relative rounded-xl overflow-hidden bg-[#161616] border border-[#222222] hover:border-[#FFD21F]/70 transition-all duration-300 cursor-pointer shadow-lg ${
-                index === 0 || index === 4 ? 'sm:col-span-2 sm:row-span-1' : ''
-              }`}
+              id={`gallery-item-${item.id}`}
+              className="flex-none w-[82%] sm:w-[calc(50%-12px)] lg:w-[calc(25%-15px)] snap-start bg-[#121212] border border-[#222222] hover:border-[#FFD21F]/70 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 shadow-lg hover:shadow-2xl hover:shadow-black group flex flex-col"
             >
-              <div className="h-64 sm:h-72 w-full overflow-hidden">
+              {/* Image with uniform aspect ratio */}
+              <div className="relative aspect-4/3 w-full overflow-hidden bg-[#181818]">
                 <img
                   src={item.image}
                   alt={item.title}
-                  className="w-full h-full object-cover object-center group-hover:scale-108 transition-transform duration-700 filter brightness-90 contrast-115"
+                  className="w-full h-full object-cover object-center group-hover:scale-108 transition-transform duration-700 filter brightness-95 contrast-105"
                   loading="lazy"
                 />
+                
+                {/* Gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-transparent to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
+
+                {/* Hover Eye Icon */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
+                  <div className="w-10 h-10 rounded-full bg-[#FFD21F] text-black flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100 transition-transform">
+                    <Eye className="w-5 h-5 stroke-[2.5]" />
+                  </div>
+                </div>
               </div>
 
-              {/* Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#080808]/95 via-[#080808]/40 to-transparent opacity-80 group-hover:opacity-95 transition-opacity" />
-
-              {/* Hover Zoom Icon */}
-              <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 border border-white/20 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                <ZoomIn className="w-4 h-4 text-[#FFD21F]" />
-              </div>
-
-              {/* Text info */}
-              <div className="absolute bottom-0 left-0 right-0 p-4">
-                <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#FFD21F] block mb-1">
-                  Fitness Art Mumbai
-                </span>
-                <h3 className="text-base font-bold text-white uppercase tracking-wide group-hover:text-[#FFD21F] transition-colors leading-snug">
+              {/* Caption details below image */}
+              <div className="p-3.5 sm:p-4 bg-[#121212] border-t border-[#1C1C1C] flex-1 flex flex-col justify-between">
+                <h3 className="text-sm font-bold text-white uppercase tracking-wide group-hover:text-[#FFD21F] transition-colors line-clamp-1">
                   {item.title}
                 </h3>
-                <p className="text-xs text-[#A5A5A5] line-clamp-1 mt-0.5">
+                <p className="text-xs text-[#888888] line-clamp-1 mt-0.5">
                   {item.caption}
                 </p>
               </div>
@@ -134,78 +187,101 @@ export const Gallery: React.FC = () => {
           ))}
         </div>
 
+        {/* Carousel Footer with Mobile Arrows & Pagination Dots */}
+        <div className="mt-6 flex items-center justify-between sm:justify-center gap-4">
+          {/* Mobile Prev Button */}
+          <button
+            onClick={() => handleScroll('prev')}
+            className="sm:hidden p-2 rounded-lg bg-[#141414] border border-[#2A2A2A] text-white flex items-center justify-center active:bg-[#FFD21F] active:text-black"
+            aria-label="Previous image"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+
+          {/* Pagination Dots */}
+          <div className="flex items-center gap-1.5" id="gallery-carousel-indicators">
+            {galleryItems.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => scrollToIndex(i)}
+                aria-label={`Go to gallery image ${i + 1}`}
+                className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                  activeIndex === i
+                    ? 'w-6 bg-[#FFD21F]'
+                    : 'w-1.5 bg-[#2A2A2A] hover:bg-[#555555]'
+                }`}
+              />
+            ))}
+          </div>
+
+          {/* Mobile Next Button */}
+          <button
+            onClick={() => handleScroll('next')}
+            className="sm:hidden p-2 rounded-lg bg-[#141414] border border-[#2A2A2A] text-white flex items-center justify-center active:bg-[#FFD21F] active:text-black"
+            aria-label="Next image"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+
       </div>
 
       {/* Lightbox Modal */}
       {activeImageIndex !== null && (
         <div
-          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 sm:p-8"
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4"
           onClick={closeLightbox}
+          id="gallery-lightbox-modal"
         >
+          {/* Close Button */}
           <button
             onClick={closeLightbox}
-            className="absolute top-6 right-6 p-3 rounded-full bg-[#1A1A1A] hover:bg-[#2A2A2A] text-white border border-[#333333] transition-colors z-50 cursor-pointer"
+            className="absolute top-5 right-5 z-50 p-2.5 rounded-full bg-[#181818] text-white hover:bg-[#FFD21F] hover:text-black transition-colors cursor-pointer"
+            id="close-lightbox-btn"
           >
             <X className="w-6 h-6" />
           </button>
 
-          {/* Prev button */}
+          {/* Prev Button */}
           <button
-            onClick={prevImage}
-            className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 p-3 rounded-full bg-[#1A1A1A]/80 hover:bg-[#2A2A2A] text-white border border-[#333333] transition-colors z-50 cursor-pointer hidden sm:flex items-center justify-center"
+            onClick={prevLightboxImage}
+            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-[#181818]/90 text-white hover:bg-[#FFD21F] hover:text-black transition-colors cursor-pointer z-50 hidden sm:flex items-center justify-center"
+            id="lightbox-prev-btn"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
 
-          {/* Next button */}
+          {/* Image & Caption Container */}
+          <div
+            className="relative max-w-4xl max-h-[85vh] w-full flex flex-col items-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={galleryItems[activeImageIndex].image}
+              alt={galleryItems[activeImageIndex].title}
+              className="max-h-[70vh] w-auto max-w-full object-contain rounded-lg border border-[#2B2B2B] shadow-2xl"
+            />
+            <div className="mt-4 text-center">
+              <h3 className="text-lg font-bold text-white uppercase font-display tracking-wide">
+                {galleryItems[activeImageIndex].title}
+              </h3>
+              <p className="text-xs sm:text-sm text-[#A5A5A5] mt-1">
+                {galleryItems[activeImageIndex].caption}
+              </p>
+              <span className="inline-block text-[11px] text-[#FFD21F] mt-1 font-semibold">
+                Photo {activeImageIndex + 1} of {galleryItems.length}
+              </span>
+            </div>
+          </div>
+
+          {/* Next Button */}
           <button
-            onClick={nextImage}
-            className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 p-3 rounded-full bg-[#1A1A1A]/80 hover:bg-[#2A2A2A] text-white border border-[#333333] transition-colors z-50 cursor-pointer hidden sm:flex items-center justify-center"
+            onClick={nextLightboxImage}
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-[#181818]/90 text-white hover:bg-[#FFD21F] hover:text-black transition-colors cursor-pointer z-50 hidden sm:flex items-center justify-center"
+            id="lightbox-next-btn"
           >
             <ChevronRight className="w-6 h-6" />
           </button>
-
-          <div
-            className="max-w-4xl w-full bg-[#121212] border border-[#2B2B2B] rounded-xl overflow-hidden shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="relative max-h-[70vh] flex items-center justify-center bg-black">
-              <img
-                src={filteredItems[activeImageIndex].image}
-                alt={filteredItems[activeImageIndex].title}
-                className="max-h-[70vh] w-auto object-contain mx-auto"
-              />
-            </div>
-
-            <div className="p-6 bg-[#121212] border-t border-[#222222] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <span className="text-xs uppercase font-extrabold tracking-widest text-[#FFD21F]">
-                  Fitness Art Facility Showcase ({activeImageIndex + 1} / {filteredItems.length})
-                </span>
-                <h3 className="font-display text-2xl font-bold text-white uppercase tracking-wide">
-                  {filteredItems[activeImageIndex].title}
-                </h3>
-                <p className="text-sm text-[#A5A5A5] mt-1">
-                  {filteredItems[activeImageIndex].caption}
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={prevImage}
-                  className="sm:hidden px-4 py-2 rounded bg-[#202020] text-white text-xs font-bold"
-                >
-                  Prev
-                </button>
-                <button
-                  onClick={nextImage}
-                  className="sm:hidden px-4 py-2 rounded bg-[#202020] text-white text-xs font-bold"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
       )}
     </section>

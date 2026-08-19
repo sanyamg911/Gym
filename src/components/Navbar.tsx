@@ -18,11 +18,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenTrialModal }) => {
         'home',
         'about',
         'programs',
-        'why-us',
-        'trainers',
         'gallery',
+        'trainers',
         'membership',
-        'schedule',
         'testimonials',
         'contact',
       ];
@@ -47,10 +45,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenTrialModal }) => {
     { label: 'Home', href: '#home' },
     { label: 'About', href: '#about' },
     { label: 'Programs', href: '#programs' },
-    { label: 'Trainers', href: '#trainers' },
     { label: 'Gallery', href: '#gallery' },
+    { label: 'Trainers', href: '#trainers' },
     { label: 'Membership', href: '#membership' },
-    { label: 'Schedule', href: '#schedule' },
+    { label: 'Reviews', href: '#testimonials' },
     { label: 'Contact', href: '#contact' },
   ];
 
@@ -241,7 +239,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenTrialModal }) => {
               </a>
 
               <p className="text-center text-[11px] text-[#707070] pt-2">
-                "IT'S A WAY OF LIFE" • Redesign Pitch Demo
+                FITNESS ART GYM • "IT'S A WAY OF LIFE"
               </p>
             </div>
           </div>

@@ -4,7 +4,6 @@ import {
   TrainerItem,
   GalleryItem,
   MembershipPlan,
-  ScheduleClass,
   TestimonialItem,
 } from '../types';
 import meditationImage from '../assets/images/regenerated_image_1787160150816.jpg';
@@ -287,73 +286,6 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
       'Complimentary guest passes per month',
       'VIP locker privileges & recovery lounge',
     ],
-  },
-];
-
-export const SCHEDULE_CLASSES: ScheduleClass[] = [
-  {
-    id: 'c1',
-    name: 'Weight Training',
-    category: 'Strength',
-    instructorPlaceholder: 'Head Strength Coach',
-    timingNote: 'TIME TO BE UPDATED',
-    room: 'Main Gym Floor',
-  },
-  {
-    id: 'c2',
-    name: 'Yoga',
-    category: 'Mind & Body',
-    instructorPlaceholder: 'Yoga Instructor',
-    timingNote: 'TIME TO BE UPDATED',
-    room: 'Studio A',
-  },
-  {
-    id: 'c3',
-    name: 'Zumba',
-    category: 'Cardio & Dance',
-    instructorPlaceholder: 'Zumba Specialist',
-    timingNote: 'TIME TO BE UPDATED',
-    room: 'Studio B',
-  },
-  {
-    id: 'c4',
-    name: 'Dance',
-    category: 'Cardio & Dance',
-    instructorPlaceholder: 'Choreography Trainer',
-    timingNote: 'TIME TO BE UPDATED',
-    room: 'Studio B',
-  },
-  {
-    id: 'c5',
-    name: 'Functional Training',
-    category: 'Strength',
-    instructorPlaceholder: 'Functional Coach',
-    timingNote: 'TIME TO BE UPDATED',
-    room: 'Turf Zone',
-  },
-  {
-    id: 'c6',
-    name: 'TRX',
-    category: 'Specialized',
-    instructorPlaceholder: 'Suspension Trainer',
-    timingNote: 'TIME TO BE UPDATED',
-    room: 'TRX Rig',
-  },
-  {
-    id: 'c7',
-    name: 'Power Yoga',
-    category: 'Mind & Body',
-    instructorPlaceholder: 'Power Yoga Master',
-    timingNote: 'TIME TO BE UPDATED',
-    room: 'Studio A',
-  },
-  {
-    id: 'c8',
-    name: 'Meditation',
-    category: 'Mind & Body',
-    instructorPlaceholder: 'Mindfulness Guide',
-    timingNote: 'TIME TO BE UPDATED',
-    room: 'Zen Room',
   },
 ];
 

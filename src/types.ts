@@ -42,15 +42,6 @@ export interface MembershipPlan {
   features: string[];
 }
 
-export interface ScheduleClass {
-  id: string;
-  name: string;
-  category: string;
-  instructorPlaceholder: string;
-  timingNote: string;
-  room: string;
-}
-
 export interface TestimonialItem {
   id: string;
   authorPlaceholder: string;
