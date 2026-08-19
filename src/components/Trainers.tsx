@@ -49,12 +49,6 @@ export const Trainers: React.FC<TrainersProps> = ({ onOpenTrialModal }) => {
                   loading="lazy"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-transparent to-transparent" />
-
-                <div className="absolute top-3 left-3">
-                  <span className="px-2 py-0.5 rounded bg-[#080808]/90 text-[#FFD21F] border border-[#333333] text-[10px] uppercase font-bold tracking-wider backdrop-blur-sm">
-                    [Placeholder]
-                  </span>
-                </div>
               </div>
 
               {/* Body */}
