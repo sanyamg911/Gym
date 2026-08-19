@@ -1,0 +1,7 @@
+{
+  "name": "Fitness Art Gym",
+  "description": "Official website for Fitness Art Gym in Mumbai, featuring programs, membership, schedule, trainers, gallery, and lead generation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
